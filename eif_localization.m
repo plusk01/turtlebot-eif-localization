@@ -1,49 +1,51 @@
-function [ mu, Sig, KK ] = ekf_localization( mu, Sig, u, Z, c, landmarks, dt, alphas, params )
-%EKF_LOCALIZATION EKF Localiation with Known Correspondences
-%   EKF Localization of 3DOF planar robot using a velocity model.
-%   See Table 7.2 (p. 204)
-
+function [ xi, Omg] = eif_localization( xi, Omg, u, Z, f, g, F, G, H, landmarks, dt, alphas, params)
+%EIF_LOCALIZATION EIF Localiation with Known Correspondences
+%   EIF Localization of 3DOF planar robot using a velocity model.
+%   See Table 7.2 (p. 204) & Table 3.6 (p. 76)
+%   Inputs:
+%   xi - transformed mean vector inv(Cov)*mu
+%   Omg - inverse covariance matrix
+%   u - control (in this case (v,w))
+%   Z - measurements for all landmarks seen (None is ok!) i.e. []
+%   f - f(x, u, dt) propogation function handle
+%   g - g(x, u, m, dt) measurement function handle (note: m is the
+%   landmark's position
+%   F - F(x, u, dt) df/dx state propogation jacobian function handle
+%   G - G(x, u, dt) df/du input propogation jacobian function handle
+%   H - H(x, u, m, dt) dg/dx measurement jacobian function handle
+%   landmarks - positions of landmarks seen (None is ok!) i.e. []
+%   dt - timestep
+%   alphas - params on contol noise
+%   params - contain parameters of measurement noise
+%   
 % -------------------------------------------------------------------------
 % Noise and system setup
 % -------------------------------------------------------------------------
 % Breakout variables for convenience
 v = u(1);
 w = u(2);
-theta = mu(3);
 
 % linearized state transition function (A) -- eq (7.8)
-G = [...
-    1 0 -(v/w)*cos(theta) + (v/w)*cos(theta+w*dt);...
-    0 1 -(v/w)*sin(theta) + (v/w)*sin(theta+w*dt);...
-    0 0  1];
+mu = Omg\xi;
+Ft = F(mu, u, dt);
 
 % linearized input matrix (B) -- eq (7.11)
-V = [...
-    % row 1
-    (-sin(theta)+sin(theta+w*dt))/w ...
-        (v/w^2)*(sin(theta)-sin(theta+w*dt))+(v/w)*cos(theta+w*dt)*dt;...
-    % row 2
-    (cos(theta)-cos(theta+w*dt))/w  ...
-        (-v/w^2)*(cos(theta)-cos(theta+w*dt))+(v/w)*sin(theta+w*dt)*dt;...
-    % row 3
-    0 dt];
+Gt = G(mu, u, dt);
 
 % control noise cov matrix (to be mapped to state space w/ V) -- eq (7.10)
 M = diag([alphas(1)*v^2 + alphas(2)*w^2 alphas(3)*v^2 + alphas(4)*w^2]);
 
 % measurement noise (R) -- eq (7.15)
 Q = diag([params.sigma_r^2 params.sigma_phi^2 params.sigma_s^2]);
+Qinv = inv(Q);
 % =========================================================================
 
 % -------------------------------------------------------------------------
 % Prediction Step
 % -------------------------------------------------------------------------
-mubar = mu + [...
-                -(v/w)*sin(theta) + (v/w)*sin(theta+w*dt);...
-                 (v/w)*cos(theta) - (v/w)*cos(theta+w*dt);...
-                 w*dt];
-             
-Sigbar = G*Sig*G.' + V*M*V.';
+Omgbar = inv(Ft*inv(Omg)*Ft.' + Gt*M*Gt.');
+mubar = f(mu,u,dt);
+xibar = Omgbar*mubar;
 % =========================================================================
 
 % -------------------------------------------------------------------------
@@ -51,41 +53,28 @@ Sigbar = G*Sig*G.' + V*M*V.';
 % -------------------------------------------------------------------------
 N = size(Z,2);
 Zhat = zeros(3,N);
-SS = zeros(3,3,N);
-KK = zeros(3,3,N);
+% Note: if N = 0, there will be no measurement update
 for i = 1:N
     % Known correspondence variable to choose the 'truth' landmark
-    m = landmarks(:,c(i));
-    
-    % For convenience
-    q = norm(m(1:2) - mubar(1:2))^2;
-    
+    m = landmarks(:,i);
+
     % Given the 'true' landmark and our current perceived position,
     % what is the measurement we should have gotten from the sensor?
-    zhat = [sqrt(q);...
-            atan2(m(2)-mubar(2),m(1)-mubar(1)) - mubar(3);...
-            m(3)];
-        
-    % Build the linearized measurement model (C) -- eq (7.14)
-    H = [-(m(1)-mubar(1))/sqrt(q) -(m(2)-mubar(2))/sqrt(q)  0;...
-          (m(2)-mubar(2))/q       -(m(1)-mubar(1))/q       -1;...
-          0                        0                        0];
+    zhat = g(mubar, u, m, dt);
 
-   % Kalman update
-   S = H*Sigbar*H.' + Q;
-   K = Sigbar*H.'/(S);
-   mubar = mubar + K*(Z(:,i) - zhat);
-   Sigbar = (eye(size(Sigbar)) - K*H)*Sigbar;
-   
-   % Save for later
-   Zhat(:,i) = zhat;
-   SS(:,:,i) = S;
-   KK(:,:,i) = K;
+    % Build the linearized measurement model (C) -- eq (7.14)
+    Ht = H(mubar, u, m, dt);
+
+    % Kalman update
+    Omgbar = Omgbar + Ht*Qinv*Ht;
+    xibar = xibar + Ht*Qinv*(Z(:,i) - zhat + Ht*mubar);
+
+    % Save for later
+    Zhat(:,i) = zhat;
 end
 % =========================================================================
 
 % Update belief
-mu = mubar;
-Sig = Sigbar;
+xi = xibar;
+Omg = Omgbar;
 end
-
