@@ -1,4 +1,4 @@
-function [ xi, Omg] = eif_localization( xi, Omg, u, Z, f, g, F, G, H, landmarks, dt, alphas, params)
+function [ xi, Omg] = eif_localization( xi, Omg, u, Z, f, h, F, G, H, landmarks, dt, alphas, params)
 %EIF_LOCALIZATION EIF Localization with Known Correspondences
 %   EIF Localization of 3DOF planar robot using a velocity model.
 %   See Table 7.2 (p. 204) & Table 3.6 (p. 76)
@@ -8,7 +8,7 @@ function [ xi, Omg] = eif_localization( xi, Omg, u, Z, f, g, F, G, H, landmarks,
 %   u - control (in this case (v,w))
 %   Z - measurements for all landmarks seen (None is ok!) i.e. []
 %   f - f(x, u, dt) propogation function handle
-%   g - g(x, u, m, dt) measurement function handle (note: m is the
+%   h - h(x, u, m, dt) measurement function handle (note: m is the
 %   landmark's position)
 %   F - F(x, u, dt) df/dx state propogation jacobian function handle
 %   G - G(x, u, dt) df/du input propogation jacobian function handle
@@ -55,12 +55,12 @@ N = size(Z,2);
 Zhat = zeros(3,N);
 % Note: if N = 0, there will be no measurement update
 for i = 1:N
-    % Known correspondence variable to choose the 'truth' landmark
+    % Position of the true landmark from the map
     m = landmarks(:,i);
 
     % Given the 'true' landmark and our current perceived position,
     % what is the measurement we should have gotten from the sensor?
-    zhat = g(mubar, u, m, dt);
+    zhat = h(mubar, u, m, dt);
 
     % Build the linearized measurement model (C) -- eq (7.14)
     Ht = H(mubar, u, m, dt);

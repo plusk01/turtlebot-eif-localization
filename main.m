@@ -89,7 +89,7 @@ for i = 1:length(odom_t)-1
     end
     
     % Localize robot using an EIF and landmark measurements
-    [xi, Omg] = eif_localization(xi, Omg, vel_odom(:,i), Z, @f, @g, @F, @G, @H, landmarks_in, Ts, alphas, sensor);
+    [xi, Omg] = eif_localization(xi, Omg, vel_odom(:,i), Z, @f, @h, @F, @G, @H, landmarks_in, Ts, alphas, sensor);
    
     x = Omg\xi;
     
