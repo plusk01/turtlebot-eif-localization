@@ -36,9 +36,8 @@ x0 = pos_odom_se2(:,1);
 % === World Parameters ====================================================
 
 % Window of the field
-field.x = [-2, 8];   % m
+field.x = [-6, 12];   % m
 field.y = [-2, 16];   % m
-
 
 % =========================================================================
 
@@ -73,7 +72,7 @@ for i = 1:length(odom_t)-1
     Z = [];
     landmarks_in = [];
     
-    %determine if their is a measurment update and grab the data if
+    %determine if there is a measurement update and grab the data if
     %necessary
     if l_t_idx <= length(l_time) %this keeps it from seg faulting when it has grabbed the last measurement data
         if l_time(l_t_idx) < odom_t(i+1)
@@ -89,7 +88,7 @@ for i = 1:length(odom_t)-1
         end   
     end
     
-    % Localize robot using an EKF and landmark measurements
+    % Localize robot using an EIF and landmark measurements
     [xi, Omg] = eif_localization(xi, Omg, vel_odom(:,i), Z, @f, @g, @F, @G, @H, landmarks_in, Ts, alphas, sensor);
    
     x = Omg\xi;

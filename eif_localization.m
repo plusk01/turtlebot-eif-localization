@@ -1,5 +1,5 @@
 function [ xi, Omg] = eif_localization( xi, Omg, u, Z, f, g, F, G, H, landmarks, dt, alphas, params)
-%EIF_LOCALIZATION EIF Localiation with Known Correspondences
+%EIF_LOCALIZATION EIF Localization with Known Correspondences
 %   EIF Localization of 3DOF planar robot using a velocity model.
 %   See Table 7.2 (p. 204) & Table 3.6 (p. 76)
 %   Inputs:
@@ -9,7 +9,7 @@ function [ xi, Omg] = eif_localization( xi, Omg, u, Z, f, g, F, G, H, landmarks,
 %   Z - measurements for all landmarks seen (None is ok!) i.e. []
 %   f - f(x, u, dt) propogation function handle
 %   g - g(x, u, m, dt) measurement function handle (note: m is the
-%   landmark's position
+%   landmark's position)
 %   F - F(x, u, dt) df/dx state propogation jacobian function handle
 %   G - G(x, u, dt) df/du input propogation jacobian function handle
 %   H - H(x, u, m, dt) dg/dx measurement jacobian function handle
