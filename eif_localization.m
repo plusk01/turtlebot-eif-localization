@@ -68,9 +68,6 @@ for i = 1:N
     r = Z(:,i) - zhat;
     if r'/S*r > 2^2, continue; end
     
-    % Ghetto-Gate the residual
-%     r = saturate(Z(:,i) - zhat, 0.05);
-    
     % Kalman update
     Omgbar = Omgbar + Ht.'*Qinv*Ht;
     xibar = xibar + Ht.'*Qinv*(r + Ht*mubar);
@@ -83,17 +80,4 @@ end
 % Update belief
 xi = xibar;
 Omg = Omgbar;
-end
-
-function y = saturate(x, value)
-%SATURATE Saturate each element of the input    
-
-y = zeros(size(x));
-
-for i = 1:length(x)
-    if x(i)>value, y(i) = value;
-    elseif x(i)<-value, y(i) = -value;
-    else, y(i) = x(i);
-    end
-end
 end
