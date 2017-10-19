@@ -52,7 +52,7 @@ xibar = Omgbar*mubar;
 % Measurement updates
 % -------------------------------------------------------------------------
 N = size(Z,2);
-Zhat = zeros(3,N);
+Zhat = zeros(2,N);
 % Note: if N = 0, there will be no measurement update
 for i = 1:N
     % Position of the true landmark from the map
@@ -66,8 +66,8 @@ for i = 1:N
     Ht = H(mubar, u, m, dt);
 
     % Kalman update
-    Omgbar = Omgbar + Ht*Qinv*Ht;
-    xibar = xibar + Ht*Qinv*(Z(:,i) - zhat + Ht*mubar);
+    Omgbar = Omgbar + Ht.'*Qinv*Ht;
+    xibar = xibar + Ht.'*Qinv*(Z(:,i) - zhat + Ht*mubar);
 
     % Save for later
     Zhat(:,i) = zhat;
