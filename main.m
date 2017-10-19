@@ -53,13 +53,14 @@ bot = drawRobot(x0, []);
 
 % Setup EIF initial conditions
 x = [0 0 0]';
+x = x0;
 Omg = eye(3);
 
 xi = Omg*x;
 
 % Save variables for later
 Xhat = zeros(3, length(odom_t));
-OO   = zeros(3,3,length(odom_t));
+PP   = zeros(3,3,length(odom_t));
 
 %index that will keep track of measurements
 l_t_idx = 1;
@@ -87,20 +88,28 @@ for i = 1:length(odom_t)-1
             l_t_idx = l_t_idx + 1;
         end   
     end
-    
+        
     % Localize robot using an EIF and landmark measurements
     [xi, Omg] = eif_localization(xi, Omg, vel_odom(:,i), Z, @f, @h, @F, @G, @H, landmarks_in, Ts, alphas, sensor);
    
-    x = Omg\xi;
+    % 'unparameterize' to get state and error covariance
+    xhat = Omg\xi;
+    P = inv(Omg);
     
-    %plot robot where we estimated its location
-    bot = drawRobot(x, bot);
+    % plot robot where we estimated its location
+    bot = drawRobot(xhat, bot);
     
     % For plotting
-    Xhat(:,i) = x;
-    OO(:,:,i) = Omg;
+    Xhat(:,i) = xhat;
+    PP(:,:,i) = P;
 
 end
+
+% Because of the way we are handling the timesteps (i.e., non-causal) get
+% rid of the last datapoint for the purposes of plotting
+Xhat = Xhat(:,1:end-1);
+PP = PP(:,1:end-1);
+t = odom_t(1:end-1);
 
 figure(2), clf;
 subplot(311); plot(t, Xhat(1,:)); ylabel('x [m]');
