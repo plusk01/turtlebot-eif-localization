@@ -1,4 +1,4 @@
-function handle = drawRobot( xt, handle)
+function handle = drawRobot( animate, xt, handle)
 %DRAWROBOT Draws a simple Thrunbot
 %   inputs:
 %       xt: input state vector (x, y, theta)
@@ -26,7 +26,9 @@ function handle = drawRobot( xt, handle)
     handle_circle = circle(x, y, r, handle_circle);
     handle_line = heading(x, y, r, theta, handle_line);
     
-    drawnow; % draw the entire robot together
+    if animate == 1
+        drawnow; % draw the entire robot together
+    end
     
     handle = [handle_circle handle_line];
 end

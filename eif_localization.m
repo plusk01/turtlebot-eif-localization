@@ -1,4 +1,4 @@
-function [ xi, Omg] = eif_localization( xi, Omg, u, Z, f, h, F, G, H, landmarks, dt, alphas, params)
+function [ xi, Omg] = eif_localization( xi, Omg, u, Z, f, h, F, G, H, landmarks, dt, R, Q)
 %EIF_LOCALIZATION EIF Localization with Known Correspondences
 %   EIF Localization of 3DOF planar robot using a velocity model.
 %   See Table 7.2 (p. 204) & Table 3.6 (p. 76)
@@ -32,18 +32,14 @@ Ft = F(mu, u, dt);
 % linearized input matrix (B) -- eq (7.11)
 Gt = G(mu, u, dt);
 
-% control noise cov matrix (to be mapped to state space w/ V) -- eq (7.10)
-M = diag([alphas(1)*v^2 + alphas(2)*w^2 alphas(3)*v^2 + alphas(4)*w^2]);
-
-% measurement noise (R) -- eq (7.15)
-Q = diag([params.sigma_r^2 params.sigma_phi^2]);
+% Inverse of measurement noise for efficiency
 Qinv = inv(Q);
 % =========================================================================
 
 % -------------------------------------------------------------------------
 % Prediction Step
 % -------------------------------------------------------------------------
-Omgbar = inv(Ft*inv(Omg)*Ft.' + Gt*M*Gt.');
+Omgbar = inv(Ft*inv(Omg)*Ft.' + R);
 mubar = f(mu,u,dt);
 xibar = Omgbar*mubar;
 % =========================================================================
@@ -65,8 +61,15 @@ for i = 1:N
     % Build the linearized measurement model (C) -- eq (7.14)
     Ht = H(mubar, u, m, dt);
     
+    % Innovation covariance
+    S = Ht/Omgbar*Ht' + Q;
+    
+    % Gate the residual
+    r = Z(:,i) - zhat;
+    if r'/S*r > 2^2, continue; end
+    
     % Ghetto-Gate the residual
-    r = saturate(Z(:,i) - zhat, 0.05);
+%     r = saturate(Z(:,i) - zhat, 0.05);
     
     % Kalman update
     Omgbar = Omgbar + Ht.'*Qinv*Ht;

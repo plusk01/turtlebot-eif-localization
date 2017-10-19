@@ -17,16 +17,11 @@ clear, clc;
 
 load('processed_data.mat')
 
-% Range/bearing sensor parameters
-sensor.sigma_r = 0.1;      % m     range std dev
-sensor.sigma_phi = 0.05;   % rad   bearing std dev
+% Process Noise
+R = diag([0.001^2   0.001^2   0.005^2]); % (x, y, theta)
 
-% Velocity motion model noise parameters
-alphas = [...
-            0.1 0.01...     % translational error
-            0.01 0.1...     % angular error
-            0 0;...         % final orientation error
-         ];
+% ArUco Measurement Noise
+Q = diag([0.001^2   0.001^2]); % (range, bearing)
 
 % Initial state
 x0 = pos_odom_se2(:,1);
@@ -49,7 +44,7 @@ plot(pos_odom_se2(1,:),pos_odom_se2(2,:))
 axis square; grid on
 
 % Initializes the robot starting point (x, y, theta (deg))
-bot = drawRobot(x0, []);
+bot = drawRobot(1, x0, []);
 
 % Setup EIF initial conditions
 x = [0 0 0]';
@@ -91,14 +86,14 @@ for i = 1:length(odom_t)-1
         
     % Localize robot using an EIF and landmark measurements
     [xi, Omg] = eif_localization(xi, Omg, vel_odom(:,i), Z, @f, @h, ...
-                    @Fjac, @Gjac, @Hjac, landmarks_in, Ts, alphas, sensor);
+                    @Fjac, @Gjac, @Hjac, landmarks_in, Ts, R, Q);
    
     % 'unparameterize' to get state and error covariance
     xhat = Omg\xi;
     P = inv(Omg);
     
     % plot robot where we estimated its location
-    bot = drawRobot(xhat, bot);
+    bot = drawRobot(mod(i,20)==0,xhat, bot);
     
     % For plotting
     Xhat(:,i) = xhat;
