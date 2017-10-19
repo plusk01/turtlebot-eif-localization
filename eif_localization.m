@@ -36,7 +36,7 @@ Gt = G(mu, u, dt);
 M = diag([alphas(1)*v^2 + alphas(2)*w^2 alphas(3)*v^2 + alphas(4)*w^2]);
 
 % measurement noise (R) -- eq (7.15)
-Q = diag([params.sigma_r^2 params.sigma_phi^2 params.sigma_s^2]);
+Q = diag([params.sigma_r^2 params.sigma_phi^2]);
 Qinv = inv(Q);
 % =========================================================================
 
