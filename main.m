@@ -90,7 +90,8 @@ for i = 1:length(odom_t)-1
     end
         
     % Localize robot using an EIF and landmark measurements
-    [xi, Omg] = eif_localization(xi, Omg, vel_odom(:,i), Z, @f, @h, @F, @G, @H, landmarks_in, Ts, alphas, sensor);
+    [xi, Omg] = eif_localization(xi, Omg, vel_odom(:,i), Z, @f, @h, ...
+                    @Fjac, @Gjac, @Hjac, landmarks_in, Ts, alphas, sensor);
    
     % 'unparameterize' to get state and error covariance
     xhat = Omg\xi;
