@@ -38,9 +38,9 @@ field.y = [-2, 16];   % m
 
 % Draw the environment
 figure(1), clf; hold on;
-scatter(landmarks(:,1), landmarks(:,2), 'k*');
+h1 = scatter(landmarks(:,1), landmarks(:,2), 'k*');
 axis([field.x(1) field.x(2) field.y(1) field.y(2)]);
-plot(pos_odom_se2(1,:),pos_odom_se2(2,:))
+h2 = plot(pos_odom_se2(1,:),pos_odom_se2(2,:))
 axis square; grid on
 
 % Initializes the robot starting point (x, y, theta (deg))
@@ -115,7 +115,8 @@ subplot(313); plot(t, Xhat(3,:)); ylabel('\psi [rad]');
 xlabel('Time [s]')
 
 figure(1),
-plot(Xhat(1,:),Xhat(2,:));
+h3 = plot(Xhat(1,:),Xhat(2,:));
+legend([h1 h2 h3], {'Landmarks', 'Odometry Estimation', 'EIF Estimation'})
 
 
 % -------------------------------------------------------------------------
