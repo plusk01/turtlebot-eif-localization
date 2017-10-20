@@ -21,7 +21,7 @@ load('processed_data.mat')
 R = diag([0.001^2   0.001^2   0.005^2]); % (x, y, theta)
 
 % ArUco Measurement Noise
-Q = diag([0.01^2   0.01^2]); % (range, bearing)
+Q = diag([0.02^2   0.02^2]); % (range, bearing)
 
 % Initial state
 x0 = pos_odom_se2(:,1);

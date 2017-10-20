@@ -66,7 +66,7 @@ for i = 1:N
     
     % Gate the residual
     r = Z(:,i) - zhat;
-    if r'/S*r > 2^2, continue; end
+    if r'/S*r > 1^2, continue; end
     
     % Kalman update
     Omgbar = Omgbar + Ht.'*Qinv*Ht;
