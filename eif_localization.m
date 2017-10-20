@@ -68,6 +68,13 @@ for i = 1:N
     r = Z(:,i) - zhat;
     if r'/S*r > 1^2, continue; end
     
+    % Heading wrapping
+    if r(2) > pi
+        r(2) = r(2) - 2*pi;
+    elseif r(2) < -pi
+        r(2) = r(2) + 2*pi;
+    end
+    
     % Kalman update
     Omgbar = Omgbar + Ht.'*Qinv*Ht;
     xibar = xibar + Ht.'*Qinv*(r + Ht*mubar);
