@@ -66,7 +66,7 @@ for i = 1:N
     
     % Gate the residual
     r = Z(:,i) - zhat;
-    if r'/S*r > 1^2, continue; end
+    if r'/S*r > 1.5^2, continue; end
     
     % Heading wrapping
     if r(2) > pi
